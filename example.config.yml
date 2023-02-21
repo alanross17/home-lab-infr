@@ -9,3 +9,9 @@ global_domain: '' # registerd domain for internet access
 local_sub_domain: '' # sub domain for local services not routed to the internet
 
 # Sevice Domains
+
+# Main Email
+admin_email: '' # email linked to services whos API keys are used below, or any services needing to contact admin
+
+# API Keys for Various Services
+cf_dns_api_key: '' # Global API key for CloudFlare, used to manage Dynamic DNS and certificates

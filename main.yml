@@ -22,4 +22,8 @@
     - name: Setup Docker.
       ansible.builtin.import_tasks: tasks/docker.yml
 
+    - name: Setup Traefik reverse proxy.
+      ansible.builtin.import_tasks: tasks/traefik.yml
 
+    - name: Setup ddclient for dynamic DNS updates on CloudFlare
+      ansible.builtin.import_tasks: tasks/ddclient.yml

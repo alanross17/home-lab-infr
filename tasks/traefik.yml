@@ -1,0 +1,35 @@
+---
+- name: Gather package facts.
+  ansible.builtin.package_facts:
+    manager: auto
+  when: ansible_facts.userspace_bits == '32'
+
+- name: Synchronize Traefik directory
+  ansible.posix.synchronize:
+    src: traefik
+    dest: "{{ config_dir }}"
+    delete: false
+    recursive: true
+    perms: false
+  become: false
+
+- name: Copy templated files for Traefik into place
+  ansible.builtin.template:
+    src: templates/traefik/{{ item.src }}
+    dest: "{{ config_dir }}/traefik/{{ item.dest }}"
+    mode: 0644
+  loop:
+    - src: docker-compose.yml.j2
+      dest: docker-compose.yml
+    - src: config.yml.j2
+      dest: data/config.yml
+    - src: traefik.yml.j2
+      dest: data/traefik.yml
+  notify: Restart traefik
+  bcome false
+
+- name: Ensure traefik is running
+  community.docker.docker_compose:
+    project_src: "{{ config_dir }}/traefik/"
+    build: false
+  become: false

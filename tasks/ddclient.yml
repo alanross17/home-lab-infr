@@ -1,0 +1,22 @@
+---
+- name: Synchronize ddclient directory.
+  ansible.posix.synchornize:
+    src: ddclient
+    dest: "{{ config_dir }}/"
+    delete: false
+    recursive: true
+    perms: false
+  become: false
+
+- name: Copy template ddclient files into place.
+  ansible.builtin.template:
+    src: templates/ddclient/{{ item.src }}
+    dest: "{{ config_dir }}/ddclient/{{ item.dest }}"
+    mode: 0644
+  loop:
+    - src: docker-compose.yml.j2
+      dest: docker-compose.yml
+    - src: ddclient.conf.j2
+      dest: data/ddclient.conf
+   notify: Restart ddclient
+   become: false
