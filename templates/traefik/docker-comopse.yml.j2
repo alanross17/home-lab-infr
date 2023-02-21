@@ -1,0 +1,51 @@
+# {{ ansible_managed }}
+---
+version: "3.5"
+
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - CF_API_EMAIL={{ admin_email }}
+      - CF_API_KEY={{ cf_dns_api_key }}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/alan/traefik/data/traefik.yml:/traefik.yml:ro
+      - /home/alan/traefik/data/acme.json:/acme.json
+      - /home/alan/traefik/data/config.yml:/config.yml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`traefik-internal.{{ local_sub_domain }}.{{ global_domain }}`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=alan:{{ traefik_hashed_pwd }}"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+# EXTERNAL
+      - "traefik.http.routers.traefik.rule=Host(`{{ global_domain }}`)"
+      - "traefik.http.routers.traefik-secure.rule=Host(`{{ global_domain }}`)"
+      - "traefik.http.routers.traefik-secure.tls.domains[1].main={{ global_domain }}"
+      - "traefik.http.routers.traefik-secure.tls.domains[1].sans=*.{{ global_domain }}"
+# INTERNAL
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.{{ local_sub_domain }}.{{ global_domain }}`)"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].main={{ local_sub_domain }}.{{ global_domain }}"
+      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.{{ local_sub_domain }}.{{ global_domain }}"
+
+networks:
+  proxy:
+    external: true

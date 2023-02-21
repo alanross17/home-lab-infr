@@ -1,0 +1,11 @@
+---
+# Location where configuration files will be stored.
+config_dir: '~'
+
+# Domain Names
+# will format as local_sub_domain(local).global_domain(example.com)
+# i.e. local.example.com
+global_domain: '' # registerd domain for internet access
+local_sub_domain: '' # sub domain for local services not routed to the internet
+
+# Sevice Domains
